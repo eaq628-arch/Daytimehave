@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<!-- ============================================================ -->
+<!-- 玑映大道Viale della NILUMA                         -->
+<!--这里为喜欢塔罗的宝子提供记录，也可看看掌柜和朋友设计的牌，欢迎提供意见。              -->
+<!-- ============================================================ -->
+<title>NLUMA // Viale della NILUMA</title>
+<meta name="description" content="玑映大道Viale della NILUMA">
+<meta name="keywords" content="tarot art, 塔罗, arcana, original artwork, tarocchi">
+<meta property="og:title" content="nluma // Original Tarot Archive">
+<meta property="og:description" content="这里不提供占卜哦，避免误导">
+<meta property="og:image" content="image/hard/15.jpg">
+<!-- ============================================================ -->
+<!-- ✏️ 可编辑区域 2：网站图标 favicon                            -->
+<!-- 把你想用的图片路径填在 href="" 里，推荐用正方形小图           -->
+<!-- 例如：href="image/hard/16.jpg"               -->
+<!-- ============================================================ -->
+<link rel="icon" href="image/major/The Moon/The Moon.jpg" type="image/jpeg">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0e0b12;color:#d4cce0;font-family:Georgia,serif;overflow-x:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:#0e0b12}
+  ::-webkit-scrollbar-thumb{background:#3a2d50;border-radius:2px}
+  textarea{-webkit-appearance:none;appearance:none}
+  button{-webkit-tap-highlight-color:transparent}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useEffect}=React;
+
+/*
+ * ============================================================
+ * IMAGE PATH DICTIONARY // 图片路径字典
+ * 如果你改了文件夹或文件名，只改这里就行，其他代码不用动
+ * ============================================================
+ */
+const IMG = {
+  // 【大阿卡那 Major Arcana】
+  // 格式: '牌id': '文件夹名/文件名.jpg'
+  // 你的文件夹在 images/major/ 下面
+  major: {
+    'fool':           'The Fool/The Fool.jpg',
+    'magician':       'The Magician/The Magician.jpg',
+    'high-priestess': 'The High Priestess/The High Priestess.jpg',
+    'empress':        'The Empress/The Empress.jpg',
+    'emperor':        'The Emperor/The Emperor.jpg',
+    'hierophant':     'The Hierophant/The Hierophant.jpg',
+    'lovers':         'The Lovers/The Lovers.jpg',
+    'chariot':        'The Chariot/The Chariot.jpg',
+    'strength':       'Strength/Strength.jpg',
+    'hermit':         'The Hermit/The Hermit.jpg',
+    'wheel':          'Wheel of Fortune/Wheel of Fortune.jpg',
+    'justice':        'Justice/Justice.jpg',
+    'hanged-man':     'The Hanged Man/The Hanged Man.jpg',
+    'death':          'Death/Death.jpg',
+    'temperance':     'Temperance/Temperance.jpg',
+    'devil':          'The Devil/The Devil.jpg',
+    'tower':          'The Tower/The Tower.jpg',
+    'star':           'The Star/The Star.jpg',
+    'moon':           'The Moon/The Moon.jpg',
+    'sun':            'The Sun/The Sun.jpg',
+    'judgement':      'Judgement/Judgement.jpg',
+    'world':          'The World/The World.jpg',
+  },
+  // 【小阿卡那 Minor Arcana】
+  // 格式: '名称': '文件夹名/文件名.jpg'
+  // 四个花色共用同一套名称，路径自动拼接
+  minor: {
+    'ace':    'Ace/Ace.jpg',
+    'two':    'Two/Two.jpg',
+    'three':  'Three/Three.jpg',
+    'four':   'Four/Four.jpg',
+    'five':   'Five/Five.jpg',
+    'six':    'Six/Six.jpg',
+    'seven':  'Seven/Seven.jpg',
+    'eight':  'Eight/Eight.jpg',
+    'nine':   'Nine/Nine.jpg',
+    'ten':    'Ten/Ten.jpg',
+    'page':   'Page/Page.jpg',
+    'knight': 'Knight/Knight.jpg',
+    'queen':  'Queen/Queen.jpg',
+    'king':   'King/King.jpg',
+  },
+};
+// 路径拼接函数
+const majorImg = (key) => `image/major/${IMG.major[key]}`;
+const minorImg = (suit, key) => `image/minor/${suit}/${IMG.minor[key]}`;
+
+const C={
+  bg:'#0e0b12',bgCard:'#120f18',bgModal:'#0c0a10',
+  purple:'#7b5ea7',purpleDim:'rgba(123,94,167,0.12)',
+  purpleGlow:'rgba(123,94,167,0.25)',accent:'#b08fd4',
+  accentDirty:'#9b7bb8',border:'#1e1828',borderAccent:'#3a2d50',
+  text:'#d4cce0',textDim:'#8a7fa0',textMute:'#3d3448',
+};
+
+const T={
+  en:{
+    studio:'— arcana studio —',subtitle:'Original Art & Interpretation',
+    disclaimer:'This website is an original art archive. It does not provide divination, card reading, or any form of fortune-telling service. The journal feature is a personal record tool only. Please do not make life decisions based on tarot readings.',
+    major:'Major Arcana',majorSub:'22 cards',minor:'Minor Arcana',minorSub:'4 suits',
+    published:'published',comingSoon:'— coming soon —',
+    journal:'JOURNAL',newReading:'NEW READING',history:'HISTORY',
+    spread:'SPREAD',selectCards:'SELECT CARDS',notes:'NOTES',
+    notesPlaceholder:'Write something...',saveReading:'SAVE READING',
+    noRecords:'— no records yet —',pickingFor:'Picking for:',clearSlot:'clear slot',
+    journalNote:'This tool does not generate readings. Record your own cards only.',
+    close:'[ CLOSE ]',del:'[ del ]',coreConcept:'CORE CONCEPT',deepInterp:'DEEP INTERPRETATION',
+    home:'HOME',wands:'Wands',wandsSub:'Fire',cups:'Cups',cupsSub:'Water',
+    swords:'Swords',swordsSub:'Air',pentacles:'Pentacles',pentaclesSub:'Earth',
+    spreads:[
+      {id:'three',desc:'Three · No Spread',positions:['Card I','Card II','Card III']},
+      {id:'cause',desc:'Object & Cause',positions:['Center','Factor I','Factor II','Factor III']},
+      {id:'extra',desc:'Cause + Extra',positions:['Center','Factor I','Factor II','Factor III','Extra']},
+    ],
+  },
+  zh:{
+    studio:'— 原创塔罗档案 —',subtitle:'原创艺术与阐释',
+    disclaimer:'本站为原创塔罗艺术档案，不提供占卜、解牌或任何形式的算命服务。记录功能仅为个人整理工具。请勿将塔罗牌意作为人生决策的依据。',
+    major:'大阿卡那',majorSub:'22张',minor:'小阿卡那',minorSub:'四个花色',
+    published:'已发布',comingSoon:'— 即将上线 —',
+    journal:'记录',newReading:'新记录',history:'历史',
+    spread:'牌阵',selectCards:'选牌',notes:'备注',
+    notesPlaceholder:'写点什么...',saveReading:'保存记录',
+    noRecords:'— 暂无记录 —',pickingFor:'选择位置：',clearSlot:'清除',
+    journalNote:'本工具不提供抽牌功能。请仅记录你自己抽到的牌。',
+    close:'[ 关闭 ]',del:'[ 删 ]',coreConcept:'核心概念',deepInterp:'深层阐释',
+    home:'首页',wands:'权杖',wandsSub:'火',cups:'圣杯',cupsSub:'水',
+    swords:'宝剑',swordsSub:'风',pentacles:'星币',pentaclesSub:'土',
+    spreads:[
+      {id:'three',desc:'三张·无牌阵',positions:['第一张','第二张','第三张']},
+      {id:'cause',desc:'对象因果阵',positions:['中心牌','因素一','因素二','因素三']},
+      {id:'extra',desc:'因果补牌阵',positions:['中心牌','因素一','因素二','因素三','补牌']},
+    ],
+  },
+  it:{
+    studio:'— arcana studio —',subtitle:'Arte Originale e Interpretazione',
+    disclaimer:"Questo sito è un archivio d'arte originale. Non fornisce servizi di divinazione, lettura delle carte o qualsiasi forma di cartomanzia. La funzione diario è esclusivamente uno strumento di registrazione personale. Si prega di non prendere decisioni di vita basandosi sulle letture dei tarocchi.",
+    major:'Arcani Maggiori',majorSub:'22 carte',minor:'Arcani Minori',minorSub:'4 semi',
+    published:'pubblicati',comingSoon:'— prossimamente —',
+    journal:'DIARIO',newReading:'NUOVA LETTURA',history:'CRONOLOGIA',
+    spread:'SCHEMA',selectCards:'SCEGLI CARTE',notes:'NOTE',
+    notesPlaceholder:'Scrivi qualcosa...',saveReading:'SALVA LETTURA',
+    noRecords:'— nessun record —',pickingFor:'Posizione:',clearSlot:'rimuovi',
+    journalNote:'Questo strumento non genera estrazioni. Registra solo le carte che hai estratto tu stesso.',
+    close:'[ CHIUDI ]',del:'[ elimina ]',coreConcept:'CONCETTO CHIAVE',deepInterp:'INTERPRETAZIONE PROFONDA',
+    home:'HOME',wands:'Bastoni',wandsSub:'Fuoco',cups:'Coppe',cupsSub:'Acqua',
+    swords:'Spade',swordsSub:'Aria',pentacles:'Denari',pentaclesSub:'Terra',
+    spreads:[
+      {id:'three',desc:'Tre carte · libere',positions:['Carta I','Carta II','Carta III']},
+      {id:'cause',desc:'Schema oggetto-causa',positions:['Centro','Fattore I','Fattore II','Fattore III']},
+      {id:'extra',desc:'Causa + carta extra',positions:['Centro','Fattore I','Fattore II','Fattore III','Extra']},
+    ],
+  },
+};
+
+const CARD_DB={
+  major:[
+  // ============================================================
+  // ✏️ 可编辑区域 3：大阿卡那牌意
+  // 每张牌找到对应的 name，填写：
+  //   concept: '核心概念，一两句话'
+  //   detail:  '深层阐释，可以写长一点'
+  // 留空字符串 '' 表示该牌暂未填写，不会显示
+  // ============================================================
+    {id:'major-0',  num:'0',     displayNum:'0 · THE FOOL',            name:'愚者',    img:majorImg('fool'),           svgIdx:0,
+      concept:'零的虚无，无限可能的起点。一个不受世俗束缚的灵魂，正准备踏入未知的旅程。\nThe zero, the void, the infinite potential. A soul unbound by convention, stepping into the unknown.\nLo zero, il vuoto, il potenziale infinito. Un\'anima libera che si lancia nell\'ignoto.',
+      detail:'在潜意识层面，愚者暗示着全然的信任与直觉的指引。它是纯粹的冒险，不计代价，不问终点。\nAt its core, The Fool speaks of pure trust and intuition — a leap taken without calculating the fall.\nNel profondo, il Matto parla di fiducia pura e intuizione — un salto senza calcolare la caduta.'},
+    {id:'major-1',  num:'I',     displayNum:'I · THE MAGICIAN',        name:'魔术师',  img:majorImg('magician'),       svgIdx:-1,
+      concept:'意志与技艺的汇聚点。手握四元素的人，将内在的意图转化为外在的现实。\nThe convergence of will and skill. One who holds all four elements and transforms intention into reality.\nIl punto in cui volontà e abilità si incontrano. Chi padroneggia i quattro elementi trasforma l\'intenzione in realtà.',
+      detail:'魔术师站在意识与物质世界的交界处。他提醒我们：工具已经在手，缺少的只是行动的决心。\nThe Magician stands at the threshold of mind and matter. The tools are already in hand — what is missing is only the will to act.\nIl Mago si trova sulla soglia tra mente e materia. Gli strumenti sono già a portata di mano — manca solo la volontà di agire.'},
+    {id:'major-2',  num:'II',    displayNum:'II · THE HIGH PRIESTESS', name:'女祭司',  img:majorImg('high-priestess'), svgIdx:-1,
+      concept:'沉默的知晓。她守护着那些无法被言说的秘密，以及尚未成形的直觉。\nSilent knowing. She guards the secrets that cannot be spoken and the intuitions not yet formed.\nSapere silenzioso. Custodisce i segreti che non possono essere detti e le intuizioni non ancora formate.',
+      detail:'女祭司不轻易开口，因为真正的智慧不依赖于解释。她提示：有些答案只能向内求，而非向外问。\nThe High Priestess rarely speaks, for true wisdom needs no explanation. She reminds us: some answers can only be found within.\nLa Papessa raramente parla, perché la vera saggezza non ha bisogno di spiegazioni. Alcune risposte si trovano solo dentro di sé.'},
+    {id:'major-3',  num:'III',   displayNum:'III · THE EMPRESS',       name:'皇后',    img:majorImg('empress'),        svgIdx:-1,
+      concept:'丰饶与创造的化身。自然的生长力量，以及对生命本身的慷慨接纳。\nThe embodiment of abundance and creation. The generative force of nature and a generous embrace of life itself.\nL\'incarnazione dell\'abbondanza e della creatività. La forza generatrice della natura e un abbraccio generoso alla vita stessa.',
+      detail:'皇后提醒我们：滋养是一种力量，而非软弱。她象征着对自我与他者的深切关怀，以及创造行为本身的神圣性。\nThe Empress reminds us that nurturing is a form of power, not weakness. She embodies deep care for self and others, and the sacred act of creation.\nL\'Imperatrice ci ricorda che nutrire è una forma di potere, non debolezza. Incarna la cura profonda per sé e per gli altri, e la sacralità dell\'atto creativo.'},
+    {id:'major-4',  num:'IV',    displayNum:'IV · THE EMPEROR',        name:'皇帝',    img:majorImg('emperor'),        svgIdx:-1,
+      concept:'秩序与结构的建立者。通过纪律与意志力，将混沌整合为可运作的系统。\nThe builder of order and structure. Through discipline and will, chaos is integrated into functioning systems.\nIl costruttore di ordine e struttura. Attraverso disciplina e volontà, il caos viene integrato in sistemi funzionanti.',
+      detail:'皇帝的力量来自稳定，而非强制。他问的是：你是否为自己的生活建立了足够可靠的地基？\nThe Emperor\'s power comes from stability, not force. He asks: have you built a foundation solid enough to support the life you want?\nIl potere dell\'Imperatore viene dalla stabilità, non dalla forza. Chiede: hai costruito una base abbastanza solida per la vita che desideri?'},
+    {id:'major-5',  num:'V',     displayNum:'V · THE HIEROPHANT',      name:'教皇',    img:majorImg('hierophant'),     svgIdx:-1,
+      concept:'传统与信仰体系的守护者。连接个人经验与更宏大精神框架的中间人。\nGuardian of tradition and belief systems. A mediator connecting personal experience to larger spiritual frameworks.\nGuardiano della tradizione e dei sistemi di credenze. Un mediatore che connette l\'esperienza personale a quadri spirituali più ampi.',
+      detail:'教皇不仅代表制度本身，也代表我们内心对归属与意义的渴望。他提问：你所遵循的信念，是否真正属于你自己？\nThe Hierophant represents not just institutions, but our inner longing for belonging and meaning. He asks: do the beliefs you follow truly belong to you?\nIl Gerofante non rappresenta solo le istituzioni, ma il desiderio interiore di appartenenza e significato. Chiede: le credenze che segui appartengono davvero a te?'},
+    {id:'major-6',  num:'VI',    displayNum:'VI · THE LOVERS',         name:'恋人',    img:majorImg('lovers'),         svgIdx:-1,
+      concept:'选择与联结的交汇。不只是关于爱情，更是关于价值对齐与人生方向的关键抉择。\nThe intersection of choice and connection. Not just about love, but about value alignment and decisive life choices.\nL\'intersezione tra scelta e connessione. Non solo amore, ma allineamento di valori e scelte decisive nella vita.',
+      detail:'恋人牌的核心是真实性。它问的是：在所有可能的路径中，你选择的那条，是否真正反映了你内心深处的渴望？\nThe heart of The Lovers is authenticity. It asks: among all possible paths, does the one you choose truly reflect your deepest desire?\nIl cuore degli Amanti è l\'autenticità. Chiede: tra tutti i percorsi possibili, quello che scegli riflette davvero il tuo desiderio più profondo?'},
+    {id:'major-7',  num:'VII',   displayNum:'VII · THE CHARIOT',       name:'战车',    img:majorImg('chariot'),        svgIdx:-1,
+      concept:'通过意志力驾驭对立的力量，推动前进。胜利不是消除冲突，而是整合冲突。\nHarnessing opposing forces through sheer will to move forward. Victory is not the elimination of conflict, but its integration.\nDominio delle forze opposte attraverso la pura volontà. La vittoria non è l\'eliminazione del conflitto, ma la sua integrazione.',
+      detail:'战车提醒我们：前进的动力往往来自张力，而非和谐。掌控不等于压制——它意味着在矛盾中找到方向。\nThe Chariot reminds us that momentum often comes from tension, not harmony. Control is not suppression — it means finding direction within contradiction.\nIl Carro ci ricorda che lo slancio spesso viene dalla tensione, non dall\'armonia. Controllare non significa sopprimere — significa trovare direzione nella contraddizione.'},
+    {id:'major-8',  num:'VIII',  displayNum:'VIII · STRENGTH',         name:'力量',    img:majorImg('strength'),       svgIdx:-1,
+      concept:'温柔的主权。真正的力量不是通过压制，而是通过理解与接纳来驯服内在的野性。\nGentle sovereignty. True strength tames the inner wildness not through suppression, but through understanding and acceptance.\nSovranità gentile. La vera forza doma la natura selvaggia interiore non attraverso la soppressione, ma attraverso la comprensione e l\'accettazione.',
+      detail:'力量牌中没有武器，只有开放的手。它所展示的，是一种不需要恐惧就能建立的权威——那是最难得的自我掌控。\nIn the Strength card there are no weapons, only open hands. It shows an authority built without fear — the rarest form of self-mastery.\nNella carta della Forza non ci sono armi, solo mani aperte. Mostra un\'autorità costruita senza paura — la forma più rara di autocontrollo.'},
+    {id:'major-9',  num:'IX',    displayNum:'IX · THE HERMIT',         name:'隐者',    img:majorImg('hermit'),         svgIdx:-1,
+      concept:'自愿的孤独与向内的光。独处不是逃避，而是找回自己声音的必要条件。\nVoluntary solitude and the light turned inward. Solitude is not escape — it is the necessary condition for finding one\'s own voice.\nSolitudine volontaria e luce rivolta verso l\'interno. La solitudine non è fuga — è la condizione necessaria per ritrovare la propria voce.',
+      detail:'隐者选择退出喧嚣，不是因为软弱，而是因为他知道：某些真相只有在寂静中才能听见。他手中的灯，只照亮脚下一步的路。\nThe Hermit withdraws not from weakness, but from knowing that some truths are only audible in silence. His lantern lights only the next single step.\nL\'Eremita si ritira non per debolezza, ma perché sa che alcune verità si sentono solo nel silenzio. La sua lanterna illumina solo il prossimo passo.'},
+    {id:'major-10', num:'X',     displayNum:'X · WHEEL OF FORTUNE',    name:'命运之轮',img:majorImg('wheel'),          svgIdx:-1,
+      concept:'周期与转变的法则。没有永恒的顶点，也没有永恒的低谷——轮子始终在转动。\nThe law of cycles and change. There is no eternal peak, no eternal valley — the wheel is always turning.\nLa legge dei cicli e del cambiamento. Non c\'è vetta eterna, né valle eterna — la ruota gira sempre.',
+      detail:'命运之轮提醒我们：执着于某种状态的永续，本身就是痛苦的来源。学会在轮转中找到自己的中心，才是真正的稳定。\nThe Wheel of Fortune reminds us that clinging to any state as permanent is itself the source of suffering. True stability means finding your center as the wheel turns.\nLa Ruota della Fortuna ci ricorda che aggrapparsi a qualsiasi stato come permanente è la fonte della sofferenza. La vera stabilità significa trovare il proprio centro mentre la ruota gira.'},
+    {id:'major-11', num:'XI',    displayNum:'XI · JUSTICE',            name:'正义',    img:majorImg('justice'),        svgIdx:-1,
+      concept:'因果的清算与客观的平衡。正义不带感情，但它公平——它看见全部，而非只看你想展示的部分。\nThe reckoning of cause and effect, the balance of objectivity. Justice is not emotional, but it is fair — it sees everything, not just what you choose to show.\nIl bilancio della causa e dell\'effetto, l\'equilibrio dell\'obiettività. La Giustizia non è emotiva, ma è equa — vede tutto, non solo ciò che scegli di mostrare.',
+      detail:'正义牌要求诚实的自我审视。在你评判外部世界之前，它先问：你对自己足够诚实了吗？\nThe Justice card demands honest self-examination. Before you judge the external world, it first asks: have you been honest enough with yourself?\nLa carta della Giustizia richiede un\'onesta auto-riflessione. Prima di giudicare il mondo esterno, chiede: sei stato abbastanza onesto con te stesso?'},
+    {id:'major-12', num:'XII',   displayNum:'XII · THE HANGED MAN',    name:'倒吊人',  img:majorImg('hanged-man'),     svgIdx:-1,
+      concept:'自愿的悬置与视角的翻转。通过放弃控制，反而获得了新的洞见。\nVoluntary suspension and the reversal of perspective. By surrendering control, new insight is gained.\nSospensione volontaria e inversione della prospettiva. Cedendo il controllo, si ottiene una nuova visione.',
+      detail:'倒吊人的脸上带着平静。他选择了等待，因为他知道：有些领悟只能在停滞中抵达。挣扎只会让绳子勒得更紧。\nThe Hanged Man\'s face is calm. He chose to wait, knowing that some realizations can only arrive in stillness. Struggling only tightens the rope.\nLa faccia dell\'Appeso è calma. Ha scelto di aspettare, sapendo che alcune realizzazioni arrivano solo nell\'immobilità. Lottare stringe solo la corda.'},
+    {id:'major-13', num:'XIII',  displayNum:'XIII · DEATH',            name:'死神',    img:majorImg('death'),          svgIdx:-1,
+      concept:'终结与蜕变。死亡牌极少意味着字面死亡——它更多指向一个阶段的完结，以及随之而来的不可逆转的转化。\nEndings and transformation. The Death card rarely means literal death — it more often points to the close of a phase and the irreversible transformation that follows.\nFini e trasformazione. La carta della Morte raramente significa morte letterale — indica più spesso la fine di una fase e l\'inevitabile trasformazione che ne consegue.',
+      detail:'死神牌教给我们：某些事物必须消逝，新的才有空间生长。拒绝放手的代价，往往比放手本身更大。\nThe Death card teaches us that some things must pass for new ones to have room to grow. The cost of refusing to let go is often greater than letting go itself.\nLa carta della Morte insegna che alcune cose devono passare affinché le nuove abbiano spazio per crescere. Il costo del rifiuto di lasciar andare è spesso maggiore del lasciar andare stesso.'},
+    {id:'major-14', num:'XIV',   displayNum:'XIV · TEMPERANCE',        name:'节制',    img:majorImg('temperance'),     svgIdx:-1,
+      concept:'流动与整合。节制不是克制，而是耐心地将对立的元素调和为更高层次的平衡。\nFlow and integration. Temperance is not restraint — it is the patient alchemy of blending opposites into a higher balance.\nFlusso e integrazione. La Temperanza non è repressione — è la paziente alchimia di fondere gli opposti in un equilibrio superiore.',
+      detail:'节制牌中，水在两个容器之间流动，从不停歇。它象征着：真正的平衡是动态的，是持续调整的结果，而非某个固定的终态。\nIn Temperance, water flows between two vessels without ceasing. True balance is dynamic — the result of constant adjustment, not a fixed state.\nNella Temperanza, l\'acqua scorre tra due vasi senza sosta. Il vero equilibrio è dinamico — il risultato di aggiustamenti costanti, non uno stato fisso.'},
+    {id:'major-15', num:'XV',    displayNum:'XV · THE DEVIL',          name:'恶魔',    img:majorImg('devil'),          svgIdx:-1,
+      concept:'束缚与阴影的具象化。恶魔代表那些我们亲手为自己套上、却假装身不由己的锁链。\nThe embodiment of bondage and shadow. The Devil represents the chains we put on ourselves, then pretend we cannot remove.\nL\'incarnazione del legame e dell\'ombra. Il Diavolo rappresenta le catene che ci mettiamo da soli, fingendo poi di non poterle togliere.',
+      detail:'注意看牌面：那些锁链套得很松——随时可以摘下。恶魔的力量来自我们不愿直视它的意愿。\nLook closely at the card: the chains are loose — they could be removed at any moment. The Devil\'s power comes from our unwillingness to look at it directly.\nGuarda attentamente la carta: le catene sono allentate — potrebbero essere rimosse in qualsiasi momento. Il potere del Diavolo viene dalla nostra riluttanza a guardarlo direttamente.'},
+    {id:'major-16', num:'XVI',   displayNum:'XVI · THE TOWER',         name:'高塔',    img:majorImg('tower'),          svgIdx:2,
+      concept:'虚假结构的突然崩塌。那些建立在傲慢与谎言上的高塔，终将被雷击倒。\nThe sudden collapse of false structures. Towers built on arrogance and illusion will always fall to the lightning.\nIl crollo improvviso delle strutture false. Le torri costruite sull\'arroganza e sull\'illusione cadranno sempre al fulmine.',
+      detail:'高塔带来的破坏是猛烈的，但它清除的是那些本就不该存在的东西。废墟之上，才有可能建立真正的自我。\nThe Tower\'s destruction is violent, but it removes only what should never have been there. Only on the ruins can something true be built.\nLa distruzione della Torre è violenta, ma rimuove solo ciò che non avrebbe mai dovuto esserci. Solo sulle rovine si può costruire qualcosa di vero.'},
+    {id:'major-17', num:'XVII',  displayNum:'XVII · THE STAR',         name:'星星',    img:majorImg('star'),           svgIdx:-1,
+      concept:'黑暗之后的希望与复原。星星不许诺速成的答案，但它稳定地发光，告诉你方向依然存在。\nHope and renewal after darkness. The Star makes no promise of quick answers, but shines steadily, telling you direction still exists.\nSperanza e rinnovamento dopo l\'oscurità. La Stella non promette risposte rapide, ma brilla stabilmente, indicando che la direzione esiste ancora.',
+      detail:'星牌常在高塔之后出现——那是被雷击之后的天空。它提醒我们：即使在最彻底的崩溃之后，仍然有光在等待被发现。\nThe Star often follows The Tower — the sky after the lightning strike. It reminds us: even after the most complete collapse, light is still waiting to be found.\nLa Stella spesso segue la Torre — il cielo dopo il fulmine. Ci ricorda: anche dopo il crollo più completo, la luce aspetta ancora di essere trovata.'},
+    {id:'major-18', num:'XVIII', displayNum:'XVIII · THE MOON',        name:'月亮',    img:majorImg('moon'),           svgIdx:1,
+      concept:'潜意识的涌动与隐藏在黑暗中的真实面貌。月亮的光芒是折射而来的，它照亮的，可能只是幻象。\nThe surge of the unconscious and the true face hidden in darkness. Moonlight is reflected — what it illuminates may be only illusion.\nIl moto dell\'inconscio e il vero volto nascosto nell\'oscurità. La luce della luna è riflessa — ciò che illumina potrebbe essere solo un\'illusione.',
+      detail:'在月光的笼罩下，你感知到的恐惧可能只是大脑生化风暴导致的幻象，而非现实本身。你需要在这场不安的静默中等待潮水退去。\nUnder the moon, the fears you perceive may be biochemical storms rather than reality. You need only wait in uneasy silence for the tide to withdraw.\nSotto la luna, le paure che percepisci potrebbero essere tempeste biochimiche piuttosto che realtà. Devi solo aspettare in silenzio inquieto che la marea si ritiri.'},
+    {id:'major-19', num:'XIX',   displayNum:'XIX · THE SUN',           name:'太阳',    img:majorImg('sun'),            svgIdx:-1,
+      concept:'清晰、活力与真实的喜悦。太阳不需要解释自己，它只是照耀。\nClarity, vitality, and authentic joy. The Sun needs no explanation — it simply shines.\nChiarezza, vitalità e gioia autentica. Il Sole non ha bisogno di spiegazioni — semplicemente splende.',
+      detail:'太阳牌是大阿卡那中最少有歧义的牌之一。它带来的是一种纯粹的、不需要被证明的存在感——那种知道自己在正确的地方的感觉。\nThe Sun is one of the least ambiguous cards in the Major Arcana. It brings a pure sense of being that needs no justification — the feeling of simply knowing you are in the right place.\nIl Sole è una delle carte meno ambigue degli Arcani Maggiori. Porta un puro senso di esistenza che non ha bisogno di giustificazione — la sensazione di sapere semplicemente di essere nel posto giusto.'},
+    {id:'major-20', num:'XX',    displayNum:'XX · JUDGEMENT',          name:'审判',    img:majorImg('judgement'),      svgIdx:-1,
+      concept:'召唤与觉醒。审判不是惩罚，而是一次被看见、被听见、重新站起来的机会。\nA calling and an awakening. Judgement is not punishment — it is a chance to be seen, heard, and to rise again.\nUna chiamata e un risveglio. Il Giudizio non è punizione — è una possibilità di essere visti, ascoltati, e di rialzarsi.',
+      detail:'审判牌问的是：当那个号角响起的时候，你愿意放下对自己的旧叙事，真正回应那个召唤吗？\nThe Judgement card asks: when that horn sounds, are you willing to release your old story about yourself and truly answer the call?\nLa carta del Giudizio chiede: quando suona quel corno, sei disposto a lasciare andare la vecchia storia su te stesso e rispondere davvero alla chiamata?'},
+    {id:'major-21', num:'XXI',   displayNum:'XXI · THE WORLD',         name:'世界',    img:majorImg('world'),          svgIdx:-1,
+      concept:'一个循环的圆满完结。世界牌标志着整合与成就——不是终点，而是螺旋上升中的一次完整。\nThe completion of a cycle. The World marks integration and achievement — not an ending, but a wholeness within the upward spiral.\nIl compimento di un ciclo. Il Mondo segna integrazione e realizzazione — non una fine, ma una completezza all\'interno della spirale ascendente.',
+      detail:'站在世界牌的中心，四元素环绕。这一刻你拥有了一切——但愚者又在边缘等待，准备开始下一段旅程。\nStanding at the center of The World, surrounded by all four elements. In this moment you have everything — but The Fool waits at the edge, ready to begin again.\nIn piedi al centro del Mondo, circondati da tutti e quattro gli elementi. In questo momento hai tutto — ma il Matto aspetta al bordo, pronto per ricominciare.'},
+  ],
+  // ============================================================
+  // ✏️ 可编辑区域 4：小阿卡那牌意
+  // 小牌目前用批量生成，concept和detail都是空的
+  // 如果要给某张小牌加牌意，在下面找到对应花色的 .map() 之后
+  // 单独补充，或者告诉我哪张牌要加，我来改
+  // ============================================================
+  wands:['ace','two','three','four','five','six','seven','eight','nine','ten','page','knight','queen','king'].map((n,i)=>({
+    id:`wands-${i+1}`,num:n.toUpperCase(),displayNum:`${n.toUpperCase()} · WANDS`,
+    name:`权杖${['Ace','二','三','四','五','六','七','八','九','十','侍从','骑士','皇后','国王'][i]}`,
+    img:minorImg('wands',n),svgIdx:-1,concept:'',detail:'',
+  })),
+  cups:['ace','two','three','four','five','six','seven','eight','nine','ten','page','knight','queen','king'].map((n,i)=>({
+    id:`cups-${i+1}`,num:n.toUpperCase(),displayNum:`${n.toUpperCase()} · CUPS`,
+    name:`圣杯${['Ace','二','三','四','五','六','七','八','九','十','侍从','骑士','皇后','国王'][i]}`,
+    img:minorImg('cups',n),svgIdx:-1,concept:'',detail:'',
+  })),
+  swords:['ace','two','three','four','five','six','seven','eight','nine','ten','page','knight','queen','king'].map((n,i)=>({
+    id:`swords-${i+1}`,num:n.toUpperCase(),displayNum:`${n.toUpperCase()} · SWORDS`,
+    name:`宝剑${['Ace','二','三','四','五','六','七','八','九','十','侍从','骑士','皇后','国王'][i]}`,
+    img:minorImg('swords',n),svgIdx:-1,concept:'',detail:'',
+  })),
+  pentacles:['ace','two','three','four','five','six','seven','eight','nine','ten','page','knight','queen','king'].map((n,i)=>({
+    id:`pentacles-${i+1}`,num:n.toUpperCase(),displayNum:`${n.toUpperCase()} · PENTACLES`,
+    name:`星币${['Ace','二','三','四','五','六','七','八','九','十','侍从','骑士','皇后','国王'][i]}`,
+    img:minorImg('pentacles',n),svgIdx:-1,concept:'',detail:'',
+  })),
+};
+
+const ALL_CARDS=[...CARD_DB.major,...CARD_DB.wands,...CARD_DB.cups,...CARD_DB.swords,...CARD_DB.pentacles];
+
+const SVG_FOOL=(
+  <svg viewBox="0 0 280 476" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%',display:'block'}}>
+    <defs><radialGradient id="g0" cx="50%" cy="40%" r="55%"><stop offset="0%" stopColor="#2a1f3d"/><stop offset="100%" stopColor="#0e0b12"/></radialGradient></defs>
+    <rect width="280" height="476" fill="url(#g0)"/>
+    {[0,40,85,130,175,215,260,305].map((a,i)=><path key={i} d={`M${140+90*Math.cos(a*Math.PI/180)} ${158+90*Math.sin(a*Math.PI/180)} A90 90 0 0 1 ${140+90*Math.cos((a+28)*Math.PI/180)} ${158+90*Math.sin((a+28)*Math.PI/180)}`} fill="none" stroke="#7b5ea7" strokeWidth="0.8" opacity={0.2+i*0.04}/>)}
+    <circle cx="140" cy="158" r="55" fill="none" stroke="#9b7bb8" strokeWidth="0.5" opacity="0.35"/>
+    <circle cx="140" cy="158" r="28" fill="#1e1530" stroke="#7b5ea7" strokeWidth="0.4" opacity="0.6"/>
+    <circle cx="140" cy="158" r="4" fill="#b08fd4" opacity="0.5"/>
+    <line x1="50" y1="360" x2="230" y2="360" stroke="#3a2d50" strokeWidth="0.5"/>
+    <text x="140" y="385" textAnchor="middle" fill="#9b7bb8" fontSize="10.5" fontFamily="Georgia,serif" letterSpacing="5" opacity="0.8">THE FOOL</text>
+    <rect x="18" y="18" width="244" height="440" fill="none" stroke="#1e1828" strokeWidth="0.8"/>
+  </svg>
+);
+const SVG_MOON=(
+  <svg viewBox="0 0 280 476" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%',display:'block'}}>
+    <defs><radialGradient id="g1" cx="45%" cy="35%" r="60%"><stop offset="0%" stopColor="#1a1030"/><stop offset="100%" stopColor="#080610"/></radialGradient></defs>
+    <rect width="280" height="476" fill="url(#g1)"/>
+    <path d="M155 78 A75 75 0 1 0 155 238 A50 50 0 1 1 155 78Z" fill="#251840" opacity="0.7" stroke="#7b5ea7" strokeWidth="0.6"/>
+    {[105,120,138,160].map((r,i)=><circle key={i} cx="140" cy="300" r={r} fill="none" stroke="#7b5ea7" strokeWidth="0.4" opacity={0.06+i*0.03}/>)}
+    {[[60,90],[210,110],[80,200],[215,185],[50,310],[225,290]].map(([x,y],i)=><circle key={i} cx={x} cy={y} r="1.2" fill="#b08fd4" opacity="0.4"/>)}
+    <text x="140" y="385" textAnchor="middle" fill="#9b7bb8" fontSize="10.5" fontFamily="Georgia,serif" letterSpacing="4" opacity="0.8">THE MOON</text>
+    <rect x="18" y="18" width="244" height="440" fill="none" stroke="#1e1828" strokeWidth="0.8"/>
+  </svg>
+);
+const SVG_TOWER=(
+  <svg viewBox="0 0 280 476" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%',display:'block'}}>
+    <defs><radialGradient id="g2" cx="50%" cy="20%" r="70%"><stop offset="0%" stopColor="#1c1025"/><stop offset="100%" stopColor="#080608"/></radialGradient></defs>
+    <rect width="280" height="476" fill="url(#g2)"/>
+    <rect x="110" y="160" width="60" height="190" fill="#130f1c" stroke="#2a1f3d" strokeWidth="0.6"/>
+    <polygon points="140,95 108,162 172,162" fill="#1a1228" stroke="#3a2d50" strokeWidth="0.6"/>
+    {[[128,185],[148,185],[128,225],[148,225],[128,265],[148,265]].map(([x,y],i)=><rect key={i} x={x} y={y} width="12" height="16" fill={i%3===1?"#2a1f3d":"#0e0b14"} stroke="#3a2d50" strokeWidth="0.4"/>)}
+    <polyline points="185,55 165,120 178,120 155,185" fill="none" stroke="#b08fd4" strokeWidth="1.2" opacity="0.55"/>
+    <text x="140" y="405" textAnchor="middle" fill="#9b7bb8" fontSize="10.5" fontFamily="Georgia,serif" letterSpacing="4" opacity="0.8">THE TOWER</text>
+    <rect x="18" y="18" width="244" height="440" fill="none" stroke="#1e1828" strokeWidth="0.8"/>
+  </svg>
+);
+const SVG_EMPTY=(
+  <svg viewBox="0 0 280 476" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%',display:'block'}}>
+    <rect width="280" height="476" fill="#0e0b12"/>
+    <rect x="18" y="18" width="244" height="440" fill="none" stroke="#1e1828" strokeWidth="0.8"/>
+    <text x="140" y="238" textAnchor="middle" fill="#3d3448" fontSize="10" fontFamily="monospace">— —</text>
+  </svg>
+);
+
+function CardSVG({idx}){
+  if(idx===0)return SVG_FOOL;
+  if(idx===1)return SVG_MOON;
+  if(idx===2)return SVG_TOWER;
+  return SVG_EMPTY;
+}
+
+function CardVisual({card,size=195}){
+  const[err,setErr]=useState(false);
+  return(
+    <div style={{width:size,aspectRatio:'1/1.7',position:'relative',overflow:'hidden',flexShrink:0}}>
+      {!err
+        ?<img src={card.img} alt={card.name} onError={()=>setErr(true)} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} draggable="false"/>
+        :<CardSVG idx={card.svgIdx??-1}/>
+      }
+      <div style={{position:'absolute',inset:0,zIndex:10,background:'transparent',cursor:'default'}}
+        onContextMenu={e=>e.preventDefault()} onDragStart={e=>e.preventDefault()}/>
+    </div>
+  );
+}
+
+function MiniCard({card,selected,onClick}){
+  return(
+    <div onClick={onClick} style={{cursor:'pointer',border:`1px solid ${selected?C.accentDirty:C.border}`,padding:4,background:selected?C.purpleDim:C.bgCard,transition:'all 0.2s',width:60,flexShrink:0}}>
+      <CardVisual card={card} size={60}/>
+      <div style={{fontFamily:'monospace',fontSize:8,color:C.textDim,textAlign:'center',marginTop:4}}>{card.name}</div>
+    </div>
+  );
+}
+
+function SpreadLayout({spread,selections}){
+  const slot=(pos,card,size=70,accent=false)=>(
+    <div style={{textAlign:'center'}}>
+      <div style={{fontFamily:'monospace',fontSize:9,color:C.textMute,marginBottom:6}}>{pos}</div>
+      <div style={{width:size,aspectRatio:'1/1.7',border:`1px solid ${accent?C.borderAccent:C.border}`,background:C.bgCard,display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden'}}>
+        {card?<CardVisual card={card} size={size}/>:<span style={{color:C.textMute,fontSize:9,fontFamily:'monospace'}}>—</span>}
+      </div>
+    </div>
+  );
+  if(spread.id==='three')return<div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>{spread.positions.map((pos,i)=><div key={i}>{slot(pos,selections[i])}</div>)}</div>;
+  const[center,...rest]=spread.positions;
+  return(
+    <div style={{textAlign:'center'}}>
+      <div style={{display:'flex',justifyContent:'center',marginBottom:12}}>{slot(center,selections[0],70,true)}</div>
+      <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>{rest.map((pos,i)=><div key={i}>{slot(pos,selections[i+1],60)}</div>)}</div>
+    </div>
+  );
+}
+
+function JournalPanel({onClose,t,isMobile}){
+  const[tab,setTab]=useState('new');
+  const[spread,setSpread]=useState(t.spreads[0]);
+  const[selections,setSelections]=useState([]);
+  const[picking,setPicking]=useState(null);
+  const[note,setNote]=useState('');
+  const[records,setRecords]=useState(()=>{try{return JSON.parse(localStorage.getItem('arcana_journal')||'[]')}catch{return[]}});
+  useEffect(()=>{setSpread(t.spreads[0]);setSelections([]);setPicking(null);},[t]);
+  const save=()=>{
+    if(!selections.filter(Boolean).length)return;
+    const e={id:Date.now(),date:new Date().toISOString(),spreadLabel:spread.desc,cards:spread.positions.map((pos,i)=>({pos,card:selections[i]||null})),note};
+    const next=[e,...records];setRecords(next);localStorage.setItem('arcana_journal',JSON.stringify(next));
+    setSelections([]);setNote('');setTab('history');
+  };
+  const del=(id)=>{const next=records.filter(r=>r.id!==id);setRecords(next);localStorage.setItem('arcana_journal',JSON.stringify(next));};
+  const fmt=(iso)=>{const d=new Date(iso);return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+  const ps=isMobile
+    ?{position:'fixed',bottom:0,left:0,right:0,zIndex:2000,maxHeight:'82vh',background:C.bgModal,border:`1px solid ${C.borderAccent}`,borderBottom:'none',boxShadow:'0 -8px 40px rgba(0,0,0,0.8)',display:'flex',flexDirection:'column',borderRadius:'12px 12px 0 0'}
+    :{position:'fixed',bottom:80,right:24,zIndex:2000,width:420,maxHeight:'75vh',background:C.bgModal,border:`1px solid ${C.borderAccent}`,boxShadow:`0 0 60px rgba(0,0,0,0.8)`,display:'flex',flexDirection:'column'};
+  return(
+    <div style={ps}>
+      {isMobile&&<div style={{width:36,height:4,background:C.border,borderRadius:2,margin:'12px auto 4px',flexShrink:0}}/>}
+      <div style={{padding:'12px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+        <span style={{fontFamily:'monospace',fontSize:10,color:C.accentDirty,letterSpacing:'0.2em'}}>{t.journal}</span>
+        <button onClick={onClose} style={{background:'none',border:'none',color:C.textMute,cursor:'pointer',fontFamily:'monospace',fontSize:12,padding:'4px 8px',minWidth:44,minHeight:44}}>{t.close}</button>
+      </div>
+      <div style={{padding:'8px 20px',background:'rgba(123,94,167,0.06)',borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+        <div style={{fontFamily:'monospace',fontSize:8.5,color:C.textMute,lineHeight:1.6}}>⚠ {t.journalNote}</div>
+      </div>
+      <div style={{display:'flex',borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+        {['new','history'].map(tb=>(
+          <button key={tb} onClick={()=>setTab(tb)} style={{flex:1,padding:'12px',background:'none',border:'none',fontFamily:'monospace',fontSize:9.5,color:tab===tb?C.accent:C.textMute,borderBottom:tab===tb?`1px solid ${C.accent}`:'1px solid transparent',cursor:'pointer',marginBottom:-1,minHeight:44}}>
+            {tb==='new'?t.newReading:`${t.history} (${records.length})`}
+          </button>
+        ))}
+      </div>
+      <div style={{overflowY:'auto',flex:1,padding:20,WebkitOverflowScrolling:'touch'}}>
+        {tab==='new'&&(
+          <div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontFamily:'monospace',fontSize:9,color:C.textMute,marginBottom:8}}>{t.spread}</div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                {t.spreads.map(s=><button key={s.id} onClick={()=>{setSpread(s);setSelections([]);setPicking(null);}} style={{padding:'8px 12px',background:spread.id===s.id?C.purpleDim:'none',border:`1px solid ${spread.id===s.id?C.accentDirty:C.border}`,color:spread.id===s.id?C.accent:C.textDim,fontFamily:'monospace',fontSize:9,cursor:'pointer',minHeight:36}}>{s.desc}</button>)}
+              </div>
+            </div>
+            <div style={{marginBottom:16,padding:14,background:'#09070f',border:`1px solid ${C.border}`}}><SpreadLayout spread={spread} selections={selections}/></div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontFamily:'monospace',fontSize:9,color:C.textMute,marginBottom:8}}>{t.selectCards}</div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
+                {spread.positions.map((pos,i)=>(
+                  <button key={i} onClick={()=>setPicking(picking===i?null:i)} style={{padding:'8px 10px',background:picking===i?C.purpleDim:'none',border:`1px solid ${picking===i?C.accentDirty:C.border}`,color:selections[i]?C.accent:C.textMute,fontFamily:'monospace',fontSize:9,cursor:'pointer',minHeight:36}}>
+                    {pos}{selections[i]?` · ${selections[i].name}`:''}
+                  </button>
+                ))}
+              </div>
+              {picking!==null&&(
+                <div style={{border:`1px solid ${C.border}`,padding:10,background:'#09070f'}}>
+                  <div style={{fontFamily:'monospace',fontSize:8.5,color:C.textMute,marginBottom:8}}>{t.pickingFor} {spread.positions[picking]}</div>
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                    {ALL_CARDS.map(card=><MiniCard key={card.id} card={card} selected={selections[picking]?.id===card.id} onClick={()=>{const next=[...selections];next[picking]=card;setSelections(next);setPicking(null);}}/>)}
+                  </div>
+                  <button onClick={()=>{const next=[...selections];next[picking]=null;setSelections(next);setPicking(null);}} style={{marginTop:8,background:'none',border:`1px solid ${C.border}`,color:C.textMute,fontFamily:'monospace',fontSize:8,padding:'6px 10px',cursor:'pointer',minHeight:32}}>{t.clearSlot}</button>
+                </div>
+              )}
+            </div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontFamily:'monospace',fontSize:9,color:C.textMute,marginBottom:6}}>{t.notes}</div>
+              <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder={t.notesPlaceholder} style={{width:'100%',minHeight:80,background:'#09070f',border:`1px solid ${C.border}`,color:C.textDim,fontFamily:'Georgia,serif',fontSize:13,lineHeight:1.7,padding:'10px 12px',resize:'vertical',outline:'none',boxSizing:'border-box'}}/>
+            </div>
+            <button onClick={save} style={{width:'100%',padding:'13px',background:C.purpleDim,border:`1px solid ${C.accentDirty}`,color:C.accent,fontFamily:'monospace',fontSize:10,letterSpacing:'0.15em',cursor:'pointer',minHeight:44}}>{t.saveReading}</button>
+          </div>
+        )}
+        {tab==='history'&&(
+          <div>
+            {records.length===0
+              ?<div style={{color:C.textMute,fontFamily:'monospace',fontSize:10,textAlign:'center',padding:'30px 0'}}>{t.noRecords}</div>
+              :records.map(r=>(
+                <div key={r.id} style={{marginBottom:20,borderBottom:`1px solid ${C.border}`,paddingBottom:20}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:10,alignItems:'flex-start'}}>
+                    <div>
+                      <div style={{fontFamily:'monospace',fontSize:9,color:C.purple}}>{fmt(r.date)}</div>
+                      <div style={{fontFamily:'monospace',fontSize:9,color:C.textMute,marginTop:2}}>{r.spreadLabel}</div>
+                    </div>
+                    <button onClick={()=>del(r.id)} style={{background:'none',border:'none',color:C.textMute,cursor:'pointer',fontFamily:'monospace',fontSize:9,padding:'4px 8px',minHeight:36}}>{t.del}</button>
+                  </div>
+                  <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
+                    {r.cards.map((c,i)=>c.card&&(
+                      <div key={i} style={{textAlign:'center'}}>
+                        <div style={{fontFamily:'monospace',fontSize:7.5,color:C.textMute,marginBottom:4}}>{c.pos}</div>
+                        <CardVisual card={c.card} size={48}/>
+                        <div style={{fontFamily:'monospace',fontSize:7.5,color:C.textDim,marginTop:4}}>{c.card.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {r.note&&<p style={{fontSize:12,color:C.textDim,lineHeight:1.7,margin:0,fontFamily:'Georgia,serif'}}>{r.note}</p>}
+                </div>
+              ))
+            }
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Gallery({cards,onCard,t,isMobile}){
+  const sz=isMobile?140:195;
+  return(
+    <div style={{maxWidth:1100,margin:'0 auto 100px',padding:isMobile?'0 16px':'0 40px',display:'flex',justifyContent:'center',gap:isMobile?20:48,flexWrap:'wrap',alignItems:'flex-start'}}>
+      {cards.length===0&&<div style={{color:C.textMute,fontFamily:'monospace',fontSize:11,padding:'60px 0'}}>{t.comingSoon}</div>}
+      {cards.map(card=>(
+        <div key={card.id} onClick={()=>onCard(card)} style={{display:'flex',flexDirection:'column',alignItems:'center',cursor:'pointer'}}
+          onMouseEnter={e=>{if(!('ontouchstart' in window)){const b=e.currentTarget.querySelector('.cb'),n=e.currentTarget.querySelector('.cn');if(b){b.style.transform='translateY(-12px)';b.style.borderColor=C.borderAccent;b.style.boxShadow=`0 20px 40px rgba(0,0,0,0.7)`;}if(n)n.style.color=C.accent;}}}
+          onMouseLeave={e=>{const b=e.currentTarget.querySelector('.cb'),n=e.currentTarget.querySelector('.cn');if(b){b.style.transform='translateY(0)';b.style.borderColor=C.border;b.style.boxShadow='0 12px 28px rgba(0,0,0,0.55)';}if(n)n.style.color=C.textDim;}}
+          onTouchStart={e=>{const b=e.currentTarget.querySelector('.cb');if(b){b.style.transform='scale(0.97)';b.style.opacity='0.85';}}}
+          onTouchEnd={e=>{const b=e.currentTarget.querySelector('.cb');if(b){b.style.transform='scale(1)';b.style.opacity='1';}}}
+        >
+          <div className="cb" style={{border:`1px solid ${C.border}`,background:C.bgCard,padding:isMobile?7:9,boxShadow:'0 12px 28px rgba(0,0,0,0.55)',transition:'all 0.35s cubic-bezier(0.165,0.84,0.44,1)'}}>
+            <CardVisual card={card} size={sz}/>
+          </div>
+          <div style={{marginTop:isMobile?14:22,textAlign:'center'}}>
+            <div style={{fontFamily:'monospace',fontSize:isMobile?9:10,color:C.purple,letterSpacing:'0.15em'}}>{card.displayNum}</div>
+            <div className="cn" style={{fontSize:isMobile?14:17,fontWeight:400,margin:'6px 0 0',letterSpacing:'0.15em',color:C.textDim,transition:'color 0.3s'}}>{card.name}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CardModal({card,onClose,t,isMobile}){
+  useEffect(()=>{if(card)document.body.style.overflow='hidden';else document.body.style.overflow='';return()=>{document.body.style.overflow='';};},[card]);
+  if(!card)return null;
+  if(isMobile)return(
+    <div onClick={onClose} style={{position:'fixed',inset:0,zIndex:1500,background:'rgba(8,6,14,0.96)',backdropFilter:'blur(12px)',display:'flex',flexDirection:'column',overflowY:'auto',WebkitOverflowScrolling:'touch'}}>
+      <div onClick={e=>e.stopPropagation()} style={{minHeight:'100%',display:'flex',flexDirection:'column',padding:'0 0 40px'}}>
+        <div style={{display:'flex',justifyContent:'flex-end',padding:'16px 20px'}}>
+          <button onClick={onClose} style={{background:'none',border:'none',color:C.textMute,fontFamily:'monospace',fontSize:12,cursor:'pointer',padding:'8px 12px',minHeight:44,minWidth:44}}>{t.close}</button>
+        </div>
+        <div style={{display:'flex',justifyContent:'center',padding:'0 40px 24px'}}><CardVisual card={card} size={180}/></div>
+        <div style={{padding:'0 24px',flex:1}}>
+          <div style={{fontFamily:'monospace',fontSize:10,color:C.purple,letterSpacing:'0.22em',marginBottom:6}}>{card.num}</div>
+          <h2 style={{fontSize:26,fontWeight:400,margin:'0 0 24px',letterSpacing:'0.15em',color:C.text,borderBottom:`1px solid ${C.border}`,paddingBottom:16}}>{card.name}</h2>
+          {card.concept&&<><span style={{fontFamily:'monospace',fontSize:9.5,color:C.accentDirty,textTransform:'uppercase',display:'block',marginBottom:10}}>{t.coreConcept}</span><p style={{fontSize:14,lineHeight:1.9,color:C.textDim,margin:'0 0 24px',textAlign:'justify'}}>{card.concept}</p></>}
+          {card.detail&&<div style={{borderTop:`1px solid ${C.border}`,paddingTop:20}}><span style={{fontFamily:'monospace',fontSize:9.5,color:C.accentDirty,textTransform:'uppercase',display:'block',marginBottom:10}}>{t.deepInterp}</span><p style={{fontSize:14,lineHeight:1.9,color:C.textDim,margin:0,textAlign:'justify'}}>{card.detail}</p></div>}
+        </div>
+      </div>
+    </div>
+  );
+  return(
+    <div onClick={onClose} style={{position:'fixed',inset:0,zIndex:1500,background:'rgba(8,6,14,0.93)',backdropFilter:'blur(18px)',display:'flex',justifyContent:'center',alignItems:'center'}}>
+      <div onClick={e=>e.stopPropagation()} style={{width:'90%',maxWidth:860,height:'80vh',border:`1px solid ${C.borderAccent}`,background:C.bgModal,display:'flex',position:'relative',boxShadow:`0 0 80px ${C.purpleDim}`}}>
+        <button onClick={onClose} style={{position:'absolute',top:22,right:28,fontFamily:'monospace',fontSize:11,color:C.textMute,background:'none',border:'none',cursor:'pointer'}}>{t.close}</button>
+        <div style={{width:'42%',borderRight:`1px solid ${C.border}`,padding:28,display:'flex',alignItems:'center',justifyContent:'center',background:'#09070f'}}><CardVisual card={card} size={260}/></div>
+        <div style={{width:'58%',padding:'48px 38px 38px',overflowY:'auto',WebkitOverflowScrolling:'touch'}}>
+          <div style={{fontFamily:'monospace',fontSize:10,color:C.purple,letterSpacing:'0.22em',marginBottom:8}}>{card.num}</div>
+          <h2 style={{fontSize:30,fontWeight:400,margin:'0 0 28px',letterSpacing:'0.2em',color:C.text,borderBottom:`1px solid ${C.border}`,paddingBottom:18}}>{card.name}</h2>
+          {card.concept&&<div style={{marginBottom:28}}><span style={{fontFamily:'monospace',fontSize:9.5,color:C.accentDirty,textTransform:'uppercase',display:'block',marginBottom:12}}>{t.coreConcept}</span><p style={{fontSize:13.5,lineHeight:2,color:C.textDim,margin:0,textAlign:'justify'}}>{card.concept}</p></div>}
+          {card.detail&&<div style={{borderTop:`1px solid ${C.border}`,paddingTop:24}}><span style={{fontFamily:'monospace',fontSize:9.5,color:C.accentDirty,textTransform:'uppercase',display:'block',marginBottom:12}}>{t.deepInterp}</span><p style={{fontSize:13.5,lineHeight:2,color:C.textDim,margin:0,textAlign:'justify'}}>{card.detail}</p></div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DisclaimerGate({onConfirm}){
+  const[hov,setHov]=useState(false);
+  return(
+    <div style={{position:'fixed',inset:0,zIndex:9999,background:'#0a0810',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'40px 20px',overflowY:'auto',WebkitOverflowScrolling:'touch'}}>
+      <div style={{fontFamily:'monospace',fontSize:10,color:C.textMute,letterSpacing:'0.3em',marginBottom:20}}>— arcana studio —</div>
+      <h1 style={{fontFamily:'Georgia,serif',fontSize:'clamp(28px,8vw,42px)',fontWeight:400,letterSpacing:'0.3em',color:C.accent,margin:'0 0 40px',textShadow:`0 0 40px ${C.purpleGlow}`,textAlign:'center'}}>ARCANA</h1>
+      <div style={{maxWidth:560,width:'100%',border:`1px solid ${C.borderAccent}`,background:'rgba(123,94,167,0.05)',padding:'clamp(20px,5vw,32px) clamp(16px,5vw,36px)',marginBottom:32}}>
+        {[
+          {lang:'EN',text:<>This website is an original art archive. It does <strong style={{color:C.text}}>not</strong> provide divination, card reading, or any form of fortune-telling service. The journal feature is a personal record tool only. Please do not make life decisions based on tarot readings.</>},
+          {lang:'中文',text:<>本站为原创塔罗艺术档案，<strong style={{color:C.text}}>不提供</strong>占卜、解牌或任何形式的算命服务。记录功能仅为个人整理工具。请勿将塔罗牌意作为人生决策的依据。</>},
+          {lang:'IT',text:<>Questo sito è un archivio d'arte originale. <strong style={{color:C.text}}>Non fornisce</strong> servizi di divinazione, lettura delle carte o qualsiasi forma di cartomanzia. La funzione diario è esclusivamente uno strumento di registrazione personale. Si prega di non prendere decisioni di vita basandosi sulle letture dei tarocchi.</>},
+        ].map((item,i,arr)=>(
+          <div key={item.lang} style={{marginBottom:i<arr.length-1?22:0,paddingBottom:i<arr.length-1?22:0,borderBottom:i<arr.length-1?`1px solid ${C.border}`:'none'}}>
+            <div style={{fontFamily:'monospace',fontSize:8.5,color:C.purple,letterSpacing:'0.2em',marginBottom:8}}>{item.lang}</div>
+            <p style={{fontFamily:'Georgia,serif',fontSize:'clamp(11px,3vw,12.5px)',lineHeight:1.9,color:C.textDim,margin:0,textAlign:'justify'}}>{item.text}</p>
+          </div>
+        ))}
+      </div>
+      <button onClick={onConfirm} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{padding:'14px clamp(24px,6vw,48px)',background:hov?C.purpleDim:'transparent',border:`1px solid ${hov?C.accentDirty:C.border}`,color:hov?C.accent:C.textDim,fontFamily:'monospace',fontSize:'clamp(10px,3vw,11px)',letterSpacing:'0.15em',cursor:'pointer',transition:'all 0.25s',minHeight:48,width:'100%',maxWidth:400}}
+      >I UNDERSTAND · 我已了解 · HO CAPITO</button>
+      <div style={{marginTop:14,fontFamily:'monospace',fontSize:8.5,color:C.textMute,textAlign:'center'}}>此声明仅显示一次 · shown once · visualizzato una volta</div>
+    </div>
+  );
+}
+
+function NavBtn({onClick,children,isMobile}){
+  return(
+    <div onClick={onClick} style={{cursor:'pointer',border:`1px solid ${C.border}`,padding:isMobile?'20px 24px':'28px 40px',textAlign:'center',transition:'all 0.3s',background:'transparent',minWidth:isMobile?'calc(50% - 8px)':200}}
+      onMouseEnter={e=>{e.currentTarget.style.borderColor=C.borderAccent;e.currentTarget.style.background=C.purpleDim;}}
+      onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.background='transparent';}}
+      onTouchStart={e=>e.currentTarget.style.background=C.purpleDim}
+      onTouchEnd={e=>e.currentTarget.style.background='transparent'}
+    >{children}</div>
+  );
+}
+
+const SUITS=(t)=>[
+  {key:'wands',label:t.wands,sub:t.wandsSub,sym:'🜂'},
+  {key:'cups',label:t.cups,sub:t.cupsSub,sym:'🜄'},
+  {key:'swords',label:t.swords,sub:t.swordsSub,sym:'🜁'},
+  {key:'pentacles',label:t.pentacles,sub:t.pentaclesSub,sym:'🜃'},
+];
+
+function App(){
+  const[isMobile,setIsMobile]=useState(()=>window.innerWidth<768);
+  useEffect(()=>{const fn=()=>setIsMobile(window.innerWidth<768);window.addEventListener('resize',fn);return()=>window.removeEventListener('resize',fn);},[]);
+  const[confirmed,setConfirmed]=useState(()=>{try{return localStorage.getItem('arcana_confirmed')==='yes'}catch{return false}});
+  const[lang,setLang]=useState('zh');
+  const[screen,setScreen]=useState('home');
+  const[gkey,setGkey]=useState('major');
+  const[activeCard,setActiveCard]=useState(null);
+  const[journalOpen,setJournalOpen]=useState(false);
+  const t=T[lang];
+
+  const confirm=()=>{try{localStorage.setItem('arcana_confirmed','yes')}catch{}setConfirmed(true);};
+  if(!confirmed)return<DisclaimerGate onConfirm={confirm}/>;
+
+  const goHome=()=>{setScreen('home');setActiveCard(null);setJournalOpen(false);};
+  const bc=screen==='home'?'SYS.LOG: ARCANA_ONLINE':screen==='minor'?`${t.home} / ${t.minor}`:gkey==='major'?`${t.home} / ${t.major}`:`${t.home} / ${t.minor} / ${(t[gkey]||gkey).toUpperCase()}`;
+
+  return(
+    <div style={{background:C.bg,color:C.text,minHeight:'100vh',fontFamily:'Georgia,serif',overflowX:'hidden'}} onContextMenu={e=>e.preventDefault()}>
+
+      {/* Sticky nav bar */}
+      <div style={{borderBottom:`1px solid ${C.border}`,padding:isMobile?'10px 16px':'11px 40px',display:'flex',justifyContent:'space-between',alignItems:'center',fontFamily:'monospace',fontSize:isMobile?9:10,color:C.textMute,position:'sticky',top:0,background:C.bg,zIndex:100}}>
+        <span style={{cursor:screen!=='home'?'pointer':'default',color:screen!=='home'?C.textDim:C.textMute,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'55%'}} onClick={goHome}>{bc}</span>
+        <div style={{display:'flex',gap:isMobile?10:14}}>
+          {['zh','en','it'].map(l=>(
+            <span key={l} onClick={()=>setLang(l)} style={{cursor:'pointer',color:lang===l?C.accent:C.textMute,borderBottom:lang===l?`1px solid ${C.accent}`:'1px solid transparent',padding:'6px 2px',minHeight:36,display:'inline-flex',alignItems:'center',fontSize:isMobile?9:10}}>
+              {l==='zh'?'中文':l.toUpperCase()}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Header */}
+      <header style={{textAlign:'center',padding:isMobile?'40px 16px 28px':'60px 20px 40px'}}>
+        <div style={{fontFamily:'monospace',fontSize:isMobile?9:10,color:C.textMute,letterSpacing:'0.25em',marginBottom:14}}>{t.studio}</div>
+        <h1 onClick={goHome} style={{fontFamily:'Georgia,serif',fontSize:isMobile?36:48,fontWeight:400,letterSpacing:'0.3em',color:C.accent,margin:0,textShadow:`0 0 40px ${C.purpleGlow}`,cursor:'pointer'}}>ARCANA</h1>
+        <div style={{fontFamily:'monospace',fontSize:isMobile?9:10,color:C.textDim,marginTop:14,letterSpacing:'0.18em'}}>{t.subtitle}</div>
+      </header>
+
+      {/* Disclaimer strip */}
+      {screen==='home'&&(
+        <div style={{maxWidth:640,margin:`0 ${isMobile?'16px':'auto'} 16px`,padding:isMobile?'12px 16px':'14px 24px',border:`1px solid ${C.border}`,background:'rgba(123,94,167,0.04)'}}>
+          <div style={{fontFamily:'monospace',fontSize:8.5,color:C.textMute,lineHeight:1.8,textAlign:'justify'}}>⚠ {t.disclaimer}</div>
+        </div>
+      )}
+
+      {/* Intro text */}
+      {screen==='home'&&(
+        <div style={{maxWidth:640,margin:`0 ${isMobile?'16px':'auto'} 32px`,textAlign:'center'}}>
+          <div style={{fontFamily:'Georgia,serif',fontSize:isMobile?13:14,color:C.textDim,lineHeight:1.9,letterSpacing:'0.05em'}}>
+            {lang==='zh'&&'这里为喜欢塔罗的宝子提供记录，也可看看掌柜和朋友设计的牌，欢迎提供意见。'}
+            {lang==='en'&&'A space to log your readings and explore original tarot designs by the creator and friends. Feedback welcome.'}
+            {lang==='it'&&'Uno spazio per registrare le tue letture e scoprire i tarocchi originali disegnati dalla creatrice e dai suoi amici. I commenti sono benvenuti.'}
+          </div>
+        </div>
+      )}
+
+      {/* Home */}
+      {screen==='home'&&(
+        <div style={{maxWidth:700,margin:'0 auto 100px',padding:isMobile?'0 16px':'0 40px',display:'flex',gap:isMobile?12:32,justifyContent:'center',flexWrap:'wrap'}}>
+          <NavBtn isMobile={isMobile} onClick={()=>{setGkey('major');setScreen('gallery');}}>
+            <div style={{fontFamily:'Georgia,serif',fontSize:isMobile?17:20,letterSpacing:'0.2em',color:C.accent,marginBottom:8}}>{t.major}</div>
+            <div style={{fontFamily:'monospace',fontSize:9,color:C.textMute}}>{t.majorSub}</div>
+            <div style={{fontFamily:'monospace',fontSize:9,color:C.purple,marginTop:6}}>{CARD_DB.major.length} {t.published}</div>
+          </NavBtn>
+          <NavBtn isMobile={isMobile} onClick={()=>setScreen('minor')}>
+            <div style={{fontFamily:'Georgia,serif',fontSize:isMobile?17:20,letterSpacing:'0.2em',color:C.accent,marginBottom:8}}>{t.minor}</div>
+            <div style={{fontFamily:'monospace',fontSize:9,color:C.textMute}}>{t.minorSub}</div>
+            <div style={{fontFamily:'monospace',fontSize:9,color:C.purple,marginTop:6}}>4 suits</div>
+          </NavBtn>
+        </div>
+      )}
+
+      {/* Minor suit select */}
+      {screen==='minor'&&(
+        <div style={{maxWidth:800,margin:'0 auto 100px',padding:isMobile?'0 16px':'0 40px',display:'flex',gap:isMobile?10:20,justifyContent:'center',flexWrap:'wrap'}}>
+          {SUITS(t).map(s=>(
+            <NavBtn key={s.key} isMobile={isMobile} onClick={()=>{setGkey(s.key);setScreen('gallery');}}>
+              <div style={{fontSize:20,marginBottom:6}}>{s.sym}</div>
+              <div style={{fontFamily:'Georgia,serif',fontSize:isMobile?15:18,letterSpacing:'0.18em',color:C.accent,marginBottom:4}}>{s.label}</div>
+              <div style={{fontFamily:'monospace',fontSize:9,color:C.textMute}}>{s.sub}</div>
+              <div style={{fontFamily:'monospace',fontSize:9,color:C.purple,marginTop:4}}>{CARD_DB[s.key].length} {t.published}</div>
+            </NavBtn>
+          ))}
+        </div>
+      )}
+
+      {/* Gallery */}
+      {screen==='gallery'&&<Gallery cards={CARD_DB[gkey]} onCard={setActiveCard} t={t} isMobile={isMobile}/>}
+
+      <CardModal card={activeCard} onClose={()=>setActiveCard(null)} t={t} isMobile={isMobile}/>
+
+      {/* Journal FAB */}
+      <button onClick={()=>setJournalOpen(o=>!o)} style={{position:'fixed',bottom:isMobile?20:28,right:isMobile?20:28,zIndex:1900,width:52,height:52,borderRadius:'50%',background:journalOpen?C.purpleDim:C.bgModal,border:`1px solid ${journalOpen?C.accentDirty:C.border}`,color:journalOpen?C.accent:C.textDim,fontSize:20,cursor:'pointer',boxShadow:'0 4px 24px rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.25s'}}>✦</button>
+
+      {journalOpen&&<JournalPanel onClose={()=>setJournalOpen(false)} t={t} isMobile={isMobile}/>}
+
+      <footer style={{textAlign:'center',padding:isMobile?'36px 16px 80px':'50px 20px',fontFamily:'monospace',fontSize:9.5,color:C.textMute,borderTop:`1px solid ${C.border}`,letterSpacing:'0.1em'}}>
+        © 2026 ARCANA STUDIO. ORIGINAL ARTWORK.<br/>
+        <span style={{color:C.border}}>PROTECTION PROTOCOL ACTIVE</span>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
